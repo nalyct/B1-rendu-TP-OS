@@ -1,9 +1,37 @@
+# TP1 : Plip plap votre OS
+
+
+
+## Sommaire
+
+- [TP1 : Plip plap votre OS](#tp1--plip-plap-votre-os)
+  - [Sommaire](#sommaire)
+- [I. Ressources de l'OS](#i-ressources-de-los)
+  - [1. Programme, service, processus](#1-programme-service-processus)
+  - [2. Mémoire et CPU](#2-mémoire-et-cpu)
+  - [3. Stockage](#3-stockage)
+  - [4. Réseau](#4-réseau)
+  - [5. Utilisateurs](#5-utilisateurs)
+  - [6. Random](#6-random)
+  - [7. Ptit amusement](#7-ptit-amusement)
+
+
+# I. Ressources de l'OS
+
+Toutes les étapes sont à faire depuis le terminal.
+
 ## 1. Programme, service, processus
 
-### a.
+Un *programme* est une suite d'instructions à exécuter pour le processeur.
 
-``` 
-PS C:\> Get-Process 
+Un *processus* est un *programme* en cours d'exécution.
+
+Un *service* est un *processus* lancé par l'OS.
+
+🌞 **Lister tous les processus en cours d'exécution sur votre machine**
+
+```
+PS C:\> Get-Process
 
 Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  SI ProcessName
 -------  ------    -----      -----     ------     --  -- -----------
@@ -249,7 +277,7 @@ Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  SI ProcessName
     201      11     2132       4212              2684   0 YMC
 ```
 
-## b.
+🌞 **Trouver les 3 processus qui ont le plus petit identifiant**
 
 ```
 PS C:\> Get-Process | Sort-Object Id | Select-Object -First 3
@@ -260,7 +288,8 @@ Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  SI ProcessName
    5679       0       76       7080                 4   0 System
       0       0      184      29720                76   0 Secure System
 ```
-## c.
+
+🌞 **Lister tous les services de la machine...**
 
 ```
 PS C:\> Get-Service | Where-Object { $_.Status -eq 'Running' }
@@ -571,4 +600,694 @@ Stopped  XblAuthManager     Gestionnaire d'authentification Xbo...
 Stopped  XblGameSave        Jeu sauvegardé sur Xbox Live
 Stopped  XboxGipSvc         Xbox Accessory Management Service
 Stopped  XboxNetApiSvc      Service de mise en réseau Xbox Live
+```
+
+## 2. Mémoire et CPU
+
+La *mémoire* c'est la *mémoire vive* ou *RAM*. Le terme *mémoire* ne fera **jamais** référence à votre disque dur ou quoi. *Mémoire*, c'est la RAM.
+
+🌞 **RAM**
+
+```
+PS C:\> Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object TotalVisibleMemorySize, FreePhysicalMemory
+>>
+
+TotalVisibleMemorySize FreePhysicalMemory
+---------------------- ------------------
+               7914772            1014224
+```
+
+🌞 **CPU**
+
+```
+PS C:\> Get-CimInstance -ClassName Win32_Processor | Select-Object -Property LoadPercentage
+>>
+
+LoadPercentage
+--------------
+             9
+```
+
+## 3. Stockage
+
+Le *stockage* c'est tout les périphériques qui permettent de stocker des données sur le long terme : clés USB, disque dur (HDD ou SSD), etc.
+
+🌞 **Périphériques**
+
+```
+PS C:\> Get-Disk | Select-Object -Property Model, Size
+>>
+
+Model                        Size
+-----                        ----
+Micron MTFDKCD256TFK 256060514304
+```
+
+🌞 **Partitions**
+
+```
+PS C:\> Get-Partition | Select-Object -Property DriveLetter, PartitionNumber, Size, Type, IsHidden
+>>
+
+
+DriveLetter     :
+PartitionNumber : 1
+Size            : 272629760
+Type            : System
+IsHidden        : True
+
+DriveLetter     :
+PartitionNumber : 2
+Size            : 134217728
+Type            : Reserved
+IsHidden        : True
+
+DriveLetter     : C
+PartitionNumber : 3
+Size            : 222030938112
+Type            : Basic
+IsHidden        : False
+
+DriveLetter     :
+PartitionNumber : 4
+Size            : 33621540864
+Type            : Recovery
+IsHidden        : True
+```
+
+🌞 **Espace disque**
+
+```
+PS C:\> Get-PSDrive -Name C | Select-Object -Property Used, Free, @{Name="Total";Expression={[math]::round($_.Used + $_.Free, 2)}}
+>>
+
+        Used         Free        Total
+        ----         ----        -----
+120732246016 101298688000 222030934016
+```
+
+## 4. Réseau
+
+Le *réseau* fait référence à la gestion des *cartes réseau* de votre PC. Ca fait aussi référence à la gestion des *connexions* réseau.
+
+Une *carte réseau* c'est un périphérique qui permet d'envoyer et recevoir des octets avec un câble (ou des ondes WiFi). L'OS se charge d'attribuer une *adresse IP* sur chaque *carte réseau*.
+
+Une *connexion réseau* c'est quand tu lances un programme qui a besoin de se connecter à un *service réseau*. Genre quand tu joues à LoL ou Minecraft, ou que t'es sur Youtube, tu te connectes à un serveur : tu fais une *connexion réseau*.
+
+🌞 **Cartes réseau**
+```
+PS C:\> Get-NetAdapter | Select-Object Name, Status, @{Name="IPAddress";Expression={(Get-NetIPAddress -InterfaceAlias $_.Name).IPAddress}}
+>>
+
+Name  Status IPAddress
+----  ------ ---------
+Wi-Fi Up     {fe80::4733:6f94:6df:6dd2%5, 10.3.214.3}
+```
+
+> Une adresse IP est toujours de la forme `xxx.xxx.xxx.xxx` où les `xxx` sont uniquement des nombres compris entre 0 et 255.
+
+🌞 **Connexions réseau**
+
+```
+PS C:\> Get-NetTCPConnection | Where-Object { $_.State -eq 'Established' } | Select-Object LocalAddress, LocalPort, RemoteAddress, RemotePort, @{Name='ProcessName';Expression={(Get-Process -Id $_.OwningProcess).Name}}
+>>
+
+
+LocalAddress  : 10.3.214.3
+LocalPort     : 56128
+RemoteAddress : 52.112.100.74
+RemotePort    : 443
+ProcessName   : chrome
+
+LocalAddress  : 10.3.214.3
+LocalPort     : 56109
+RemoteAddress : 52.112.120.222
+RemotePort    : 443
+ProcessName   : chrome
+
+LocalAddress  : 10.3.214.3
+LocalPort     : 55943
+RemoteAddress : 35.186.224.45
+RemotePort    : 443
+ProcessName   : Discord
+
+LocalAddress  : 10.3.214.3
+LocalPort     : 55941
+RemoteAddress : 162.159.134.234
+RemotePort    : 443
+ProcessName   : Discord
+
+LocalAddress  : 10.3.214.3
+LocalPort     : 55559
+RemoteAddress : 35.186.224.45
+RemotePort    : 443
+ProcessName   : Spotify
+
+LocalAddress  : 10.3.214.3
+LocalPort     : 55538
+RemoteAddress : 74.125.71.188
+RemotePort    : 5228
+ProcessName   : chrome
+
+LocalAddress  : 10.3.214.3
+LocalPort     : 55535
+RemoteAddress : 20.199.120.151
+RemotePort    : 443
+ProcessName   : svchost
+
+LocalAddress  : 10.3.214.3
+LocalPort     : 55521
+RemoteAddress : 35.186.224.41
+RemotePort    : 443
+ProcessName   : Spotify
+
+LocalAddress  : 10.3.214.3
+LocalPort     : 55518
+RemoteAddress : 104.199.65.9
+RemotePort    : 4070
+ProcessName   : Spotify
+
+LocalAddress  : 10.3.214.3
+LocalPort     : 55085
+RemoteAddress : 20.223.35.26
+RemotePort    : 443
+ProcessName   : StartMenuExperienceHost
+
+LocalAddress  : 127.0.0.1
+LocalPort     : 49706
+RemoteAddress : 127.0.0.1
+RemotePort    : 49705
+ProcessName   : WUDFHost
+
+LocalAddress  : 127.0.0.1
+LocalPort     : 49705
+RemoteAddress : 127.0.0.1
+RemotePort    : 49706
+ProcessName   : WUDFHost
+
+LocalAddress  : 127.0.0.1
+LocalPort     : 49704
+RemoteAddress : 127.0.0.1
+RemotePort    : 49703
+ProcessName   : ipfsvc
+
+LocalAddress  : 127.0.0.1
+LocalPort     : 49703
+RemoteAddress : 127.0.0.1
+RemotePort    : 49704
+ProcessName   : ipfsvc
+
+LocalAddress  : 127.0.0.1
+LocalPort     : 49702
+RemoteAddress : 127.0.0.1
+RemotePort    : 49701
+ProcessName   : WUDFHost
+
+LocalAddress  : 127.0.0.1
+LocalPort     : 49701
+RemoteAddress : 127.0.0.1
+RemotePort    : 49702
+ProcessName   : WUDFHost
+```
+> *Il s'agit de lister les connexions de type **TCP** en réalité, si ça peut vous aider dans vos recherches :)*
+
+## 5. Utilisateurs
+
+**Un *utilisateur*, sur un OS, c'est une identité qui peut lancer des programmes.**
+
+Un *processus* s'exécute **toujours** sous l'identité d'un certain utilisateur. Genre si tu te connectes avec l'utilisateur "meooow" quand tu ouvres ton PC, et bien tous les programmes que tu lances seront exécutés sous l'identité de "meooow".
+
+Chaque *utilisateur* a des privilèges particuliers sur la machine, et en particulier sur les fichiers : chaque *utilisateur* a le droit (ou non) de lire tel ou tel fichier, de le modifier, ou de l'exécuter comme un programme.
+
+**Choisir l'*utilisateur* qui lance un *programme* c'est donc choisir les *droits* du *processus* pendant son exécution.**
+
+A chaque fois qu'un *programme* essaie d'accéder à un fichier, l'OS vérifie si le *programme* a le droit ou non de faire ça.
+
+> *Il est donc potentiellement très dangereux d'exécuter des programmes en tant qu'administrateur, car ces processus auront des privilèges très élevés pendant qu'ils s'exécutent.*
+
+🌞 **Lister les *utilisateurs* de la machine**
+
+```
+PS C:\> Get-LocalUser | Select-Object Name, Enabled
+>>
+
+Name               Enabled
+----               -------
+Administrateur       False
+DefaultAccount       False
+Invité               False
+Naly                  True
+WDAGUtilityAccount   False
+```
+
+🌞 **Heure de login**
+
+```
+PS C:\> Get-CimInstance -ClassName ‘Win32_LogonSession’ | Where {$_.LogonType -eq ‘2’}
+>>
+
+LogonId Name LogonType StartTime           Status AuthenticationPackage
+------- ---- --------- ---------           ------ ---------------------
+1199840      2         11/10/2024 11:47:20        NTLM
+1199729      2         11/10/2024 11:47:20        NTLM
+```
+
+🌞 **Lister les *processus* en cours d'exécution**
+
+```
+PS C:\> Get-Process | Select-Object Name, Id, @{Name='UserName';Expression={(Get-WmiObject Win32_ComputerSystem).UserName}}
+>>
+
+Name                    Id UserName
+----                    -- --------
+AggregatorHost        6432 LORDI-F6EIS5EVF\Naly
+ApplicationFrameHost  5308 LORDI-F6EIS5EVF\Naly
+armsvc               18188 LORDI-F6EIS5EVF\Naly
+chrome                1036 LORDI-F6EIS5EVF\Naly
+chrome                1788 LORDI-F6EIS5EVF\Naly
+chrome                2156 LORDI-F6EIS5EVF\Naly
+chrome                3496 LORDI-F6EIS5EVF\Naly
+chrome                3652 LORDI-F6EIS5EVF\Naly
+chrome                3708 LORDI-F6EIS5EVF\Naly
+chrome                6648 LORDI-F6EIS5EVF\Naly
+chrome                7352 LORDI-F6EIS5EVF\Naly
+chrome                7624 LORDI-F6EIS5EVF\Naly
+chrome                8748 LORDI-F6EIS5EVF\Naly
+chrome               10336 LORDI-F6EIS5EVF\Naly
+chrome               12304 LORDI-F6EIS5EVF\Naly
+chrome               12392 LORDI-F6EIS5EVF\Naly
+chrome               12948 LORDI-F6EIS5EVF\Naly
+chrome               13732 LORDI-F6EIS5EVF\Naly
+chrome               14948 LORDI-F6EIS5EVF\Naly
+chrome               15952 LORDI-F6EIS5EVF\Naly
+chrome               17328 LORDI-F6EIS5EVF\Naly
+chrome               17768 LORDI-F6EIS5EVF\Naly
+chrome               19632 LORDI-F6EIS5EVF\Naly
+chrome               19708 LORDI-F6EIS5EVF\Naly
+chrome               20912 LORDI-F6EIS5EVF\Naly
+chrome               21688 LORDI-F6EIS5EVF\Naly
+chrome               22012 LORDI-F6EIS5EVF\Naly
+chrome               22232 LORDI-F6EIS5EVF\Naly
+cmd                   4320 LORDI-F6EIS5EVF\Naly
+cmd                   5688 LORDI-F6EIS5EVF\Naly
+cmd                  11240 LORDI-F6EIS5EVF\Naly
+cmd                  19176 LORDI-F6EIS5EVF\Naly
+cmd                  19440 LORDI-F6EIS5EVF\Naly
+conhost               4056 LORDI-F6EIS5EVF\Naly
+conhost              13728 LORDI-F6EIS5EVF\Naly
+conhost              14028 LORDI-F6EIS5EVF\Naly
+conhost              15892 LORDI-F6EIS5EVF\Naly
+conhost              17636 LORDI-F6EIS5EVF\Naly
+conhost              17792 LORDI-F6EIS5EVF\Naly
+conhost              21812 LORDI-F6EIS5EVF\Naly
+CredentialEnrollm... 11876 LORDI-F6EIS5EVF\Naly
+CrossDeviceService   10408 LORDI-F6EIS5EVF\Naly
+csrss                  820 LORDI-F6EIS5EVF\Naly
+csrss                  944 LORDI-F6EIS5EVF\Naly
+ctfmon               11504 LORDI-F6EIS5EVF\Naly
+DataExchangeHost      3004 LORDI-F6EIS5EVF\Naly
+DAX3API               1564 LORDI-F6EIS5EVF\Naly
+DAX3API               4272 LORDI-F6EIS5EVF\Naly
+Discord              11136 LORDI-F6EIS5EVF\Naly
+Discord              11388 LORDI-F6EIS5EVF\Naly
+Discord              13704 LORDI-F6EIS5EVF\Naly
+Discord              14940 LORDI-F6EIS5EVF\Naly
+Discord              16944 LORDI-F6EIS5EVF\Naly
+Discord              18184 LORDI-F6EIS5EVF\Naly
+dllhost               9064 LORDI-F6EIS5EVF\Naly
+dllhost               9684 LORDI-F6EIS5EVF\Naly
+dllhost              13244 LORDI-F6EIS5EVF\Naly
+dwm                   1600 LORDI-F6EIS5EVF\Naly
+ETDCtrl               3100 LORDI-F6EIS5EVF\Naly
+ETDService            4292 LORDI-F6EIS5EVF\Naly
+explorer              7768 LORDI-F6EIS5EVF\Naly
+FbMAService           4324 LORDI-F6EIS5EVF\Naly
+FnHotkeyCapsLKNumLK   1648 LORDI-F6EIS5EVF\Naly
+FnHotkeyUtility       7792 LORDI-F6EIS5EVF\Naly
+fontdrvhost           1168 LORDI-F6EIS5EVF\Naly
+fontdrvhost           1172 LORDI-F6EIS5EVF\Naly
+FwSwitchService       4360 LORDI-F6EIS5EVF\Naly
+gamingservices        5932 LORDI-F6EIS5EVF\Naly
+gamingservicesnet     5924 LORDI-F6EIS5EVF\Naly
+Idle                     0 LORDI-F6EIS5EVF\Naly
+IntelCpHDCPSvc        1868 LORDI-F6EIS5EVF\Naly
+ipf_helper            4212 LORDI-F6EIS5EVF\Naly
+ipf_uf                4544 LORDI-F6EIS5EVF\Naly
+ipfsvc                4344 LORDI-F6EIS5EVF\Naly
+jhi_service           4532 LORDI-F6EIS5EVF\Naly
+Lenovo.Modern.ImC...  4508 LORDI-F6EIS5EVF\Naly
+LenovoUtilityService  4620 LORDI-F6EIS5EVF\Naly
+LenovoVantage-(Ge... 22260 LORDI-F6EIS5EVF\Naly
+LenovoVantage-(Va... 10940 LORDI-F6EIS5EVF\Naly
+LenovoVantageService 22416 LORDI-F6EIS5EVF\Naly
+Lively               12772 LORDI-F6EIS5EVF\Naly
+Lively.Watchdog      14296 LORDI-F6EIS5EVF\Naly
+LockApp              17184 LORDI-F6EIS5EVF\Naly
+LsaIso                 856 LORDI-F6EIS5EVF\Naly
+lsass                  824 LORDI-F6EIS5EVF\Naly
+Memory Compression    3300 LORDI-F6EIS5EVF\Naly
+MoUsoCoreWorker       4352 LORDI-F6EIS5EVF\Naly
+MpDefenderCoreSer...  5448 LORDI-F6EIS5EVF\Naly
+mpv                  10648 LORDI-F6EIS5EVF\Naly
+MsMpEng              15388 LORDI-F6EIS5EVF\Naly
+NisSrv               23340 LORDI-F6EIS5EVF\Naly
+OneApp.IGCC.WinSe...  4440 LORDI-F6EIS5EVF\Naly
+pdf24                 4652 LORDI-F6EIS5EVF\Naly
+pdf24                12272 LORDI-F6EIS5EVF\Naly
+PhoneExperienceHost  10908 LORDI-F6EIS5EVF\Naly
+powershell            6064 LORDI-F6EIS5EVF\Naly
+Registry               116 LORDI-F6EIS5EVF\Naly
+RtkAudUService64      4696 LORDI-F6EIS5EVF\Naly
+RtkAudUService64     12148 LORDI-F6EIS5EVF\Naly
+RuntimeBroker         3832 LORDI-F6EIS5EVF\Naly
+RuntimeBroker         7772 LORDI-F6EIS5EVF\Naly
+RuntimeBroker         8408 LORDI-F6EIS5EVF\Naly
+RuntimeBroker         9232 LORDI-F6EIS5EVF\Naly
+RuntimeBroker         9280 LORDI-F6EIS5EVF\Naly
+RuntimeBroker        14300 LORDI-F6EIS5EVF\Naly
+RuntimeBroker        16244 LORDI-F6EIS5EVF\Naly
+RuntimeBroker        17360 LORDI-F6EIS5EVF\Naly
+SearchHost            5204 LORDI-F6EIS5EVF\Naly
+SearchIndexer        15752 LORDI-F6EIS5EVF\Naly
+Secure System           76 LORDI-F6EIS5EVF\Naly
+SecurityHealthSer... 12088 LORDI-F6EIS5EVF\Naly
+SecurityHealthSys... 12068 LORDI-F6EIS5EVF\Naly
+services              1000 LORDI-F6EIS5EVF\Naly
+ShellExperienceHost  18084 LORDI-F6EIS5EVF\Naly
+sihost                7240 LORDI-F6EIS5EVF\Naly
+smss                   552 LORDI-F6EIS5EVF\Naly
+spoolsv               3156 LORDI-F6EIS5EVF\Naly
+Spotify               2760 LORDI-F6EIS5EVF\Naly
+Spotify               5816 LORDI-F6EIS5EVF\Naly
+Spotify               8596 LORDI-F6EIS5EVF\Naly
+Spotify               8880 LORDI-F6EIS5EVF\Naly
+Spotify              13288 LORDI-F6EIS5EVF\Naly
+Spotify              18844 LORDI-F6EIS5EVF\Naly
+Spotify              19788 LORDI-F6EIS5EVF\Naly
+Spotify              22176 LORDI-F6EIS5EVF\Naly
+StartMenuExperien...  6524 LORDI-F6EIS5EVF\Naly
+svchost               1140 LORDI-F6EIS5EVF\Naly
+svchost               1264 LORDI-F6EIS5EVF\Naly
+svchost               1356 LORDI-F6EIS5EVF\Naly
+svchost               1400 LORDI-F6EIS5EVF\Naly
+svchost               1452 LORDI-F6EIS5EVF\Naly
+svchost               1524 LORDI-F6EIS5EVF\Naly
+svchost               1532 LORDI-F6EIS5EVF\Naly
+svchost               1592 LORDI-F6EIS5EVF\Naly
+svchost               1632 LORDI-F6EIS5EVF\Naly
+svchost               1716 LORDI-F6EIS5EVF\Naly
+svchost               1812 LORDI-F6EIS5EVF\Naly
+svchost               1924 LORDI-F6EIS5EVF\Naly
+svchost               1940 LORDI-F6EIS5EVF\Naly
+svchost               1968 LORDI-F6EIS5EVF\Naly
+svchost               2028 LORDI-F6EIS5EVF\Naly
+svchost               2040 LORDI-F6EIS5EVF\Naly
+svchost               2072 LORDI-F6EIS5EVF\Naly
+svchost               2184 LORDI-F6EIS5EVF\Naly
+svchost               2260 LORDI-F6EIS5EVF\Naly
+svchost               2268 LORDI-F6EIS5EVF\Naly
+svchost               2304 LORDI-F6EIS5EVF\Naly
+svchost               2484 LORDI-F6EIS5EVF\Naly
+svchost               2520 LORDI-F6EIS5EVF\Naly
+svchost               2624 LORDI-F6EIS5EVF\Naly
+svchost               2636 LORDI-F6EIS5EVF\Naly
+svchost               2864 LORDI-F6EIS5EVF\Naly
+svchost               2880 LORDI-F6EIS5EVF\Naly
+svchost               2896 LORDI-F6EIS5EVF\Naly
+svchost               3052 LORDI-F6EIS5EVF\Naly
+svchost               3120 LORDI-F6EIS5EVF\Naly
+svchost               3184 LORDI-F6EIS5EVF\Naly
+svchost               3192 LORDI-F6EIS5EVF\Naly
+svchost               3200 LORDI-F6EIS5EVF\Naly
+svchost               3316 LORDI-F6EIS5EVF\Naly
+svchost               3336 LORDI-F6EIS5EVF\Naly
+svchost               3380 LORDI-F6EIS5EVF\Naly
+svchost               3408 LORDI-F6EIS5EVF\Naly
+svchost               3536 LORDI-F6EIS5EVF\Naly
+svchost               3604 LORDI-F6EIS5EVF\Naly
+svchost               3612 LORDI-F6EIS5EVF\Naly
+svchost               3632 LORDI-F6EIS5EVF\Naly
+svchost               3792 LORDI-F6EIS5EVF\Naly
+svchost               3904 LORDI-F6EIS5EVF\Naly
+svchost               3928 LORDI-F6EIS5EVF\Naly
+svchost               4148 LORDI-F6EIS5EVF\Naly
+svchost               4236 LORDI-F6EIS5EVF\Naly
+svchost               4248 LORDI-F6EIS5EVF\Naly
+svchost               4256 LORDI-F6EIS5EVF\Naly
+svchost               4500 LORDI-F6EIS5EVF\Naly
+svchost               4828 LORDI-F6EIS5EVF\Naly
+svchost               4844 LORDI-F6EIS5EVF\Naly
+svchost               4860 LORDI-F6EIS5EVF\Naly
+svchost               4988 LORDI-F6EIS5EVF\Naly
+svchost               5036 LORDI-F6EIS5EVF\Naly
+svchost               5776 LORDI-F6EIS5EVF\Naly
+svchost               5976 LORDI-F6EIS5EVF\Naly
+svchost               6000 LORDI-F6EIS5EVF\Naly
+svchost               6016 LORDI-F6EIS5EVF\Naly
+svchost               6472 LORDI-F6EIS5EVF\Naly
+svchost               6628 LORDI-F6EIS5EVF\Naly
+svchost               6856 LORDI-F6EIS5EVF\Naly
+svchost               6956 LORDI-F6EIS5EVF\Naly
+svchost               7076 LORDI-F6EIS5EVF\Naly
+svchost               7108 LORDI-F6EIS5EVF\Naly
+svchost               7272 LORDI-F6EIS5EVF\Naly
+svchost               7280 LORDI-F6EIS5EVF\Naly
+svchost               7288 LORDI-F6EIS5EVF\Naly
+svchost               7356 LORDI-F6EIS5EVF\Naly
+svchost               7440 LORDI-F6EIS5EVF\Naly
+svchost               7688 LORDI-F6EIS5EVF\Naly
+svchost               7700 LORDI-F6EIS5EVF\Naly
+svchost               8308 LORDI-F6EIS5EVF\Naly
+svchost               8528 LORDI-F6EIS5EVF\Naly
+svchost               8536 LORDI-F6EIS5EVF\Naly
+svchost               8736 LORDI-F6EIS5EVF\Naly
+svchost               8868 LORDI-F6EIS5EVF\Naly
+svchost               9344 LORDI-F6EIS5EVF\Naly
+svchost               9916 LORDI-F6EIS5EVF\Naly
+svchost              10008 LORDI-F6EIS5EVF\Naly
+svchost              12312 LORDI-F6EIS5EVF\Naly
+svchost              12420 LORDI-F6EIS5EVF\Naly
+svchost              12916 LORDI-F6EIS5EVF\Naly
+svchost              13096 LORDI-F6EIS5EVF\Naly
+svchost              13132 LORDI-F6EIS5EVF\Naly
+svchost              13260 LORDI-F6EIS5EVF\Naly
+svchost              13416 LORDI-F6EIS5EVF\Naly
+svchost              14192 LORDI-F6EIS5EVF\Naly
+svchost              14444 LORDI-F6EIS5EVF\Naly
+svchost              14644 LORDI-F6EIS5EVF\Naly
+svchost              17896 LORDI-F6EIS5EVF\Naly
+svchost              18212 LORDI-F6EIS5EVF\Naly
+svchost              21444 LORDI-F6EIS5EVF\Naly
+svchost              22904 LORDI-F6EIS5EVF\Naly
+System                   4 LORDI-F6EIS5EVF\Naly
+SystemSettings       11248 LORDI-F6EIS5EVF\Naly
+SystemSettingsBroker  6584 LORDI-F6EIS5EVF\Naly
+TabTip               11516 LORDI-F6EIS5EVF\Naly
+taskhostw             7676 LORDI-F6EIS5EVF\Naly
+taskhostw            17404 LORDI-F6EIS5EVF\Naly
+TextInputHost         1988 LORDI-F6EIS5EVF\Naly
+unsecapp              4448 LORDI-F6EIS5EVF\Naly
+unsecapp              4456 LORDI-F6EIS5EVF\Naly
+unsecapp             13272 LORDI-F6EIS5EVF\Naly
+UserOOBEBroker        8828 LORDI-F6EIS5EVF\Naly
+vgtray               12008 LORDI-F6EIS5EVF\Naly
+Windows.Media.Bac...  3588 LORDI-F6EIS5EVF\Naly
+wininit                920 LORDI-F6EIS5EVF\Naly
+winlogon               484 LORDI-F6EIS5EVF\Naly
+wlanext               4048 LORDI-F6EIS5EVF\Naly
+WmiPrvSE              4616 LORDI-F6EIS5EVF\Naly
+WMIRegistrationSe...  4920 LORDI-F6EIS5EVF\Naly
+WUDFHost              1308 LORDI-F6EIS5EVF\Naly
+WUDFHost              1464 LORDI-F6EIS5EVF\Naly
+WUDFHost              1848 LORDI-F6EIS5EVF\Naly
+WUDFHost              2104 LORDI-F6EIS5EVF\Naly
+YMC                   2684 LORDI-F6EIS5EVF\Naly
+```
+
+
+🌞 **Sur un fichier random qui se trouve dans votre dossier `Téléchargements/`**
+
+```
+PS C:\> Get-Acl "C:\Users\$env:USERNAME\Downloads\form2.jpg" | Select-Object Owner
+>>
+
+Owner
+-----
+LORDI-F6EIS5EVF\Naly
+```
+
+## 6. Random
+
+🌞 **Uptime**
+
+```
+PS C:\> Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object LastBootUpTime
+>>
+
+LastBootUpTime
+--------------
+11/10/2024 11:45:49
+```
+
+🌞 **Device**
+
+```
+PS C:\> Get-CimInstance -ClassName Win32_Processor | Select-Object Name
+>>
+
+Name
+----
+Intel(R) N100
+```
+
+🌞 **Version**
+
+```
+PS C:\> Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object Caption, Version
+>>
+
+Caption                                      Version
+-------                                      -------
+Microsoft Windows 11 Professionnel Éducation 10.0.22631
+```
+
+🌞 **Mise à jour**
+
+```
+PS C:\> Get-WmiObject -Class Win32_QuickFixEngineering | Select-Object -First 1 InstalledOn
+>>
+
+InstalledOn
+-----------
+11/10/2024 00:00:00
+```
+
+## 7. Ptit amusement
+
+Mise en situation réelle d'une petite investigation sur votre PC, avec le terminal, liés aux notions qu'on a vu.
+
+🌞 **Lister les *connexions active*s**
+
+- **choisir l'une des lignes comme cible**, une sur laquelle vous souhaiterez obtenir plus d'infos
+- notez en particulier :
+  - l'adresse IP que vous avez utilisé pour vous connecter à ce serveur (dans une colonne)
+  - l'adresse IP du serveur auquel vous êtes connectés (dans l'autre colonne :d)
+  - le nom/l'identifiant du *programme* qui fait cette connexion
+
+> Ne choissisez **pas** une connexion qui utilise l'adresse IP `127.0.0.1`, n'importe quelle autre fera l'affaire.
+
+🌞 **En apprendre + sur le *processus* en cours d'exécution**
+
+```
+PS C:\Program Files\Google\Chrome\Application> $chromePath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+>> $owner = (Get-Acl $chromePath).Owner
+>> Write-Output "Propriétaire du programme : $owner"
+>>
+Propriétaire du programme : BUILTIN\Administrateurs
+PS C:\Program Files\Google\Chrome\Application>
+```
+
+🌞 **En apprendre + sur le *programme***
+
+```
+PS C:\> cd "C:\Program Files\Google\Chrome\Application" 
+```
+
+ ```
+PS C:\Program Files\Google\Chrome\Application> ./chrome
+``` 
+
+```
+PS C:\Program Files\Google\Chrome\Application>
+```
+
+
+
+🌞 **En apprendre + sur l'adresse IP**
+
+- utilise ma commande magique pour ça :
+
+```bash
+# Sur Windows
+Invoke-RestMethod -Method Get -Uri http://ip-api.com/json/<ADRESSE IP ICI>
+# Par exemple
+Invoke-RestMethod -Method Get -Uri http://ip-api.com/json/13.37.13.37
+
+# Sur Linux/MacOS
+curl http://ip-api.com/json/<ADRESSE IP ICI>
+# Par exemple
+curl http://ip-api.com/json/13.37.13.37
+```
+
+```
+
+PS C:\> Invoke-RestMethod -Method Get -Uri http://ip-api.com/json/13.37.13.37
+
+
+status      : success
+country     : France
+countryCode : FR
+region      : IDF
+regionName  : Île-de-France
+city        : Paris
+zip         : 75000
+lat         : 48,8566
+lon         : 2,35222
+timezone    : Europe/Paris
+isp         : Amazon Technologies Inc.
+org         : AWS EC2 (eu-west-3)
+as          : AS16509 Amazon.com, Inc.
+query       : 13.37.13.37
+```
+
+```
+PS C:\> curl http://ip-api.com/json/13.37.13.37
+
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"status":"success","country":"France","countryCode":"FR","region":"IDF","regionName":"Île-de-France","city":"Paris","zip":"75000","lat":48.8566,"lon":2.35222,"timezone":"Europe/Paris","isp"
+                    :"Amazon T...
+RawContent        : HTTP/1.1 200 OK
+                    Access-Control-Allow-Origin: *
+                    X-Ttl: 38
+                    X-Rl: 43
+                    Content-Length: 301
+                    Content-Type: application/json; charset=utf-8
+                    Date: Mon, 04 Nov 2024 17:23:09 GMT
+
+                    {"status":"success","co...
+Forms             : {}
+Headers           : {[Access-Control-Allow-Origin, *], [X-Ttl, 38], [X-Rl, 43], [Content-Length, 301]...}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : System.__ComObject
+RawContentLength  : 301
+```
+
+🌞 **Délai**
+
+- mesurer la latence entre vous et ce serveur
+- ça se fait en utilisant la commande `ping` : `ping <ADRESSE IP>`
+- par exemple, pour envoyer des ptits *Pings* vers l'adresse IP `13.37.13.37` : `ping 13.37.13.37`
+- généralement vous avez une valeur en millisecondes : le temps qu'un message *Ping* fasse l'aller-retour entre vous et le serveur
+
+> *Ping* est un message extrêmement simpliste, le plus simpliste qu'on peut faire en fait. On veut juste un ptit message pour tester le temps d'aller-retour vers un serveur.
+
+![Ping](./img/high.jpg)
+
+```
+PS C:\Users\Naly>  ping 13.37.13.37
+
+Envoi d’une requête 'Ping'  13.37.13.37 avec 32 octets de données :
+Délai d’attente de la demande dépassé.
+Délai d’attente de la demande dépassé.
+Délai d’attente de la demande dépassé.
+Délai d’attente de la demande dépassé.
+
+Statistiques Ping pour 13.37.13.37:
+    Paquets : envoyés = 4, reçus = 0, perdus = 4 (perte 100%),
+
+
 ```
