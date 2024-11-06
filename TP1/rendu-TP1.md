@@ -1,6 +1,7 @@
 ## 1. Programme, service, processus
 
-1. ``` PS C:\> Get-Process
+``` 
+PS C:\> Get-Process 
 
 Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  SI ProcessName
 -------  ------    -----      -----     ------     --  -- -----------
@@ -245,3 +246,4 @@ Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  SI ProcessName
     226       8     1592       1764              2104   0 WUDFHost
     201      11     2132       4212              2684   0 YMC
 ```
+
