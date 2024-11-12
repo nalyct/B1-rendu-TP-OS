@@ -37,8 +37,9 @@ drwx------ 16 naly naly 4096 Nov 11 13:24 naly
 
 🌞 **Trouver le chemin du fichier de configuration du serveur SSH**
 ```
-naly@TPOS:~$ pwd ssh-config
-/home/naly
+naly@TPOS:~$ find / -name "sshd_config" 2</dev/null
+/etc/ssh/sshd_config
+/usr/share/openssh/sshd_config
 ```
 
 
