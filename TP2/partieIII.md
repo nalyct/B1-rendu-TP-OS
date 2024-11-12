@@ -58,7 +58,7 @@ meow  meow.html  meow.zip
 root@TPOS:~# file meow
 meow: XZ compressed data, checksum CRC64
 root@TPOS:~# mv meow meow.xz
-root@TPOS:~# unxz meow.xz
+root@TPOS:~# xz -d meow.xz
 root@TPOS:~# file meow
 meow: bzip2 compressed data, block size = 900k
 root@TPOS:~# mv meow meow.bz2
