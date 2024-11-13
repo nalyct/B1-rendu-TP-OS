@@ -150,10 +150,22 @@ su
 
 
 🌞 **Lancer un *processus* `sleep 9999` en tâche de fond**
-
-
+ ```
+ naly@TPOS:/$ sleep 9999 &
+[1] 35026
+naly@TPOS:/$ ps -ef | grep sleep | head -n 1
+naly       35026   34584  0 22:21 pts/5    00:00:00 sleep 9999
+naly@TPOS:/$ echo $$
+34584
+ ```
 
 🌞 **Fermez votre session SSH**
+```
+naly@TPOS:~$ ps -ef | grep sleep
+naly       35026       1  0 08:42 ?        00:00:00 sleep 9999
+naly       35121   35101 23 08:53 pts/1    00:00:00 grep sleep
+```
+-> le processus sleep lancé en tâche de fond s'éxécute toujours.
 
 
 > Un *parent* ne laisserait quand même pas ses *enfants* seuls voyons ? Qui ferait ça ? Si un *parent* est amené à mourir, il fait ce que tout bon *parent* fait : il tue ses *enfants*.
