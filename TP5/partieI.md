@@ -134,32 +134,151 @@ abc@abc:~/work$ file $(which firefox)
 ```
 
 🌞 **Parmi les *librairies* appelées par *hello2*, déterminer le type du fichier nommé `libc.so.X`**
+```
+abc@abc:~$ file /usr/lib/x86_64-linux-gnu/libc.so.6
+/usr/lib/x86_64-linux-gnu/libc.so.6: ELF 64-bit LSB shared object, x86-64, version 1 (GNU/Linux), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=c047672cae7964324658491e7dee26748ae5d2f8, for GNU/Linux 3.2.0, stripped
+```
 
 ## 3. Compilation statique
 
 
 🌞 **Affichez le type des fichiers `hello2` et `hello3`**
-
+```
+abc@abc:~/work$ cp hello2.c hello3.c
+abc@abc:~/work$ gcc -static -fno-stack-protector -g -m32 -o hello3 hello3.c
+abc@abc:~/work$ ls -l hello3
+-rwxr-xr-x 1 abc abc 742172 Nov 24 15:14 hello3
+abc@abc:~/work$ ./hello3
+Hello, World!
+```
+```
+abc@abc:~/work$ file hello2
+hello2: ELF 32-bit LSB pie executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, BuildID[sha1]=4d5bd5d79d0192184edef4b18b818126c7707932, for GNU/Linux 3.2.0, with debug_info, not stripped
+abc@abc:~/work$ file hello3
+hello3: ELF 32-bit LSB executable, Intel 80386, version 1 (GNU/Linux), statically linked, BuildID[sha1]=c267c46254603d9c1b2455874234c632bf7ba311, for GNU/Linux 3.2.0, with debug_info, not stripped
+abc@abc:~/work$ ls -lh hello2 hello3
+-rwxr-xr-x 1 abc abc  16K Nov 18 18:08 hello2
+-rwxr-xr-x 1 abc abc 725K Nov 24 15:14 hello3
+```
 
 🌞 **Affichez leurs tailles**
+```
+abc@abc:~/work$ du -h hello2 hello3
+16K     hello2
+728K    hello3
+```
 
 
 ## 4. Compilation cross-platform
 
 🌞 **Affichez l'*architecture* de votre *CPU***
+```
+abc@abc:~/work$ lscpu
+Architecture:             x86_64
+  CPU op-mode(s):         32-bit, 64-bit
+  Address sizes:          39 bits physical, 48 bits virtual
+  Byte Order:             Little Endian
+CPU(s):                   1
+  On-line CPU(s) list:    0
+Vendor ID:                GenuineIntel
+  Model name:             Intel(R) N100
+    CPU family:           6
+    Model:                190
+    Thread(s) per core:   1
+    Core(s) per socket:   1
+    Socket(s):            1
+    Stepping:             0
+    BogoMIPS:             1612.79
+    Flags:                fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36
+                          clflush mmx fxsr sse sse2 ht syscall nx rdtscp lm constant_tsc rep_good
+                          nopl xtopology nonstop_tsc cpuid tsc_known_freq pni pclmulqdq ssse3 cx16
+                           sse4_1 sse4_2 movbe popcnt aes rdrand hypervisor lahf_lm abm 3dnowprefe
+                          tch ibrs_enhanced fsgsbase bmi1 bmi2 invpcid rdseed adx clflushopt sha_n
+                          i arat md_clear flush_l1d arch_capabilities
+Virtualization features:
+  Hypervisor vendor:      KVM
+  Virtualization type:    full
+Caches (sum of all):
+  L1d:                    32 KiB (1 instance)
+  L1i:                    64 KiB (1 instance)
+  L2:                     2 MiB (1 instance)
+  L3:                     6 MiB (1 instance)
+NUMA:
+  NUMA node(s):           1
+  NUMA node0 CPU(s):      0
+Vulnerabilities:
+  Gather data sampling:   Not affected
+  Itlb multihit:          Not affected
+  L1tf:                   Not affected
+  Mds:                    Not affected
+  Meltdown:               Not affected
+  Mmio stale data:        Not affected
+  Reg file data sampling: Mitigation; Clear Register File
+  Retbleed:               Mitigation; Enhanced IBRS
+  Spec rstack overflow:   Not affected
+  Spec store bypass:      Vulnerable
+  Spectre v1:             Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+  Spectre v2:             Mitigation; Enhanced / Automatic IBRS; RSB filling; PBRSB-eIBRS SW seque
+                          nce; BHI SW loop, KVM SW loop
+  Srbds:                  Not affected
+  Tsx async abort:        Not affected
+abc@abc:~/work$ cat /proc/cpuinfo
+processor       : 0
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 190
+model name      : Intel(R) N100
+stepping        : 0
+microcode       : 0xffffffff
+cpu MHz         : 806.399
+cache size      : 6144 KB
+physical id     : 0
+siblings        : 1
+core id         : 0
+cpu cores       : 1
+apicid          : 0
+initial apicid  : 0
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 22
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid tsc_known_freq pni pclmulqdq ssse3 cx16 sse4_1 sse4_2 movbe popcnt aes rdrand hypervisor lahf_lm abm 3dnowprefetch ibrs_enhanced fsgsbase bmi1 bmi2 invpcid rdseed adx clflushopt sha_ni arat md_clear flush_l1d arch_capabilities
+bugs            : spectre_v1 spectre_v2 spec_store_bypass swapgs retbleed eibrs_pbrsb rfds bhi
+bogomips        : 1612.79
+clflush size    : 64
+cache_alignment : 64
+address sizes   : 39 bits physical, 48 bits virtual
+power management:
 
+abc@abc:~/work$ which x86_64-linux-gnu-gcc
+/usr/bin/x86_64-linux-gnu-gcc
+
+```
 
 
 🌞 **Vérifiez que vous avez la commande `x86-64-linux-gnu-gcc`**
-
+```
+abc@abc:~/work$ which x86_64-linux-gnu-gcc
+/usr/bin/x86_64-linux-gnu-gcc
+```
 
 
 🌞 **Compilez votre fichier `hello3.c` dans un fichier cible nommé `hello4` vers une autre *architecture* que la vôtre**
-
+```
+abc@abc:~/work$ arm-linux-gnueabihf-gcc -o hello4 hello3.c
+```
 
 
 🌞 **[Désassemblez](../../cours/memo/glossary.md#désassembler) `hello3` et `hello4` à l'aide d'`objdump`**
+```
+objdump -dS hello3
+objdump -dS hello4
+
+```
 
 
-
-🌞 **Essayez d'exécuter le *programme* `hello4`**
+🌞 **Essayez d'exécuter le *programme* `hello4`**   
+```
+abc@abc:~/work$ ./hello4
+-bash: ./hello4: cannot execute binary file: Exec format error
+```
